@@ -5,17 +5,17 @@ local InterfaceManager = {} do
     -- Define your custom theme colors here
     local CustomThemes = {
         ["Viow Arabian Mix"] = {
-            Window = Color3.fromRGB(15, 15, 23),
-            Main = Color3.fromRGB(20, 20, 30),
-            Secondary = Color3.fromRGB(25, 25, 35),
-            Tertiary = Color3.fromRGB(30, 30, 40),
-            Text = Color3.fromRGB(240, 240, 240),
-            TextDark = Color3.fromRGB(180, 180, 180),
-            Accent = Color3.fromRGB(255, 215, 0), -- Golden accent for Arabian theme
-            AccentDark = Color3.fromRGB(200, 160, 0),
-            Success = Color3.fromRGB(40, 200, 40),
-            Warning = Color3.fromRGB(255, 200, 0),
-            Error = Color3.fromRGB(255, 80, 80)
+            Window = Color3.fromRGB(220, 240, 255),      -- Very light blue
+            Main = Color3.fromRGB(200, 230, 255),        -- Light blue
+            Secondary = Color3.fromRGB(180, 220, 255),   -- Slightly darker light blue
+            Tertiary = Color3.fromRGB(160, 210, 255),    -- Medium light blue
+            Text = Color3.fromRGB(30, 50, 80),           -- Dark blue text for contrast
+            TextDark = Color3.fromRGB(50, 80, 120),      -- Medium blue text
+            Accent = Color3.fromRGB(100, 170, 255),      -- Bright light blue accent
+            AccentDark = Color3.fromRGB(80, 150, 230),   -- Darker light blue accent
+            Success = Color3.fromRGB(100, 200, 150),     -- Light green-blue
+            Warning = Color3.fromRGB(255, 220, 100),     -- Light yellow
+            Error = Color3.fromRGB(255, 150, 150)        -- Light red
         }
     }
     
