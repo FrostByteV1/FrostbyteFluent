@@ -1,44 +1,64 @@
 local httpService = game:GetService("HttpService")
-
 local InterfaceManager = {} do
 	InterfaceManager.Folder = "FluentRenewedSettings"
-
+    
+    -- Define your custom theme colors here
+    local CustomThemes = {
+        ["Viow Arabian Mix"] = {
+            Window = Color3.fromRGB(15, 15, 23),
+            Main = Color3.fromRGB(20, 20, 30),
+            Secondary = Color3.fromRGB(25, 25, 35),
+            Tertiary = Color3.fromRGB(30, 30, 40),
+            Text = Color3.fromRGB(240, 240, 240),
+            TextDark = Color3.fromRGB(180, 180, 180),
+            Accent = Color3.fromRGB(255, 215, 0), -- Golden accent for Arabian theme
+            AccentDark = Color3.fromRGB(200, 160, 0),
+            Success = Color3.fromRGB(40, 200, 40),
+            Warning = Color3.fromRGB(255, 200, 0),
+            Error = Color3.fromRGB(255, 80, 80)
+        }
+    }
+    
     InterfaceManager.Settings = {
         Theme = "Viow Arabian Mix",
         Acrylic = true,
         Transparency = true,
         MenuKeybind = Enum.KeyCode.RightControl
     }
-
+    
     function InterfaceManager:SetFolder(folder)
 		self.Folder = folder;
 		self:BuildFolderTree()
 	end
-
-  function InterfaceManager:SetLibrary(library)
-	self.Library = library
-
-	local settings = InterfaceManager.Settings
-
-	settings.Theme = settings.Theme or library.Theme or "Dark"
-	settings.Acrylic = settings.Acrylic ~= nil and settings.Acrylic or library.UseAcrylic or true
-	settings.Transparency = settings.Transparency ~= nil and settings.Transparency or library.Transparency or true
-	settings.MenuKeybind = settings.MenuKeybind or library.MinimizeKey or Enum.KeyCode.RightControl
-end
-
-
+    
+    function InterfaceManager:SetLibrary(library)
+        self.Library = library
+        
+        -- Add custom themes to the library
+        for themeName, themeColors in pairs(CustomThemes) do
+            if not table.find(library.Themes, themeName) then
+                table.insert(library.Themes, themeName)
+                -- You might need to add the theme colors to the library's theme system here
+                -- This depends on how your Fluent library handles themes internally
+            end
+        end
+        
+        local settings = InterfaceManager.Settings
+        settings.Theme = settings.Theme or library.Theme or "Dark"
+        settings.Acrylic = settings.Acrylic ~= nil and settings.Acrylic or library.UseAcrylic or true
+        settings.Transparency = settings.Transparency ~= nil and settings.Transparency or library.Transparency or true
+        settings.MenuKeybind = settings.MenuKeybind or library.MinimizeKey or Enum.KeyCode.RightControl
+    end
+    
     function InterfaceManager:BuildFolderTree()
 		local paths = {}
-
 		local parts = self.Folder:split("/")
-
 		for idx = 1, #parts do
 			paths[#paths + 1] = table.concat(parts, "/", 1, idx)
 		end
 		
 		paths[#paths + 1] = self.Folder
 		paths[#paths + 1] = `{self.Folder}/settings`
-
 		for i = 1, #paths do
 			local str = paths[i]
 			if not isfolder(str) then
@@ -46,18 +66,16 @@ end
 			end
 		end
 	end
-
+    
     function InterfaceManager:SaveSettings()
         writefile(`{self.Folder}/options.json`, httpService:JSONEncode(InterfaceManager.Settings))
     end
-
+    
     function InterfaceManager:LoadSettings()
         local path = `{self.Folder}/options.json`
-
         if isfile(path) then
             local data = readfile(path)
             local success, decoded = pcall(httpService.JSONDecode, httpService, data)
-
             if success then
                 for i, v in next, decoded do
                     InterfaceManager.Settings[i] = v
@@ -65,30 +83,67 @@ end
             end
         end
     end
-
+    
+    function InterfaceManager:ApplyCustomTheme(themeName)
+        if CustomThemes[themeName] and self.Library then
+            local theme = CustomThemes[themeName]
+            -- Apply the custom theme colors
+            -- This is a basic implementation - you may need to modify based on your Fluent library's structure
+            if self.Library.SetTheme then
+                -- If the library has a SetTheme method that accepts color tables
+                self.Library:SetTheme(theme)
+            elseif self.Library.Theme then
+                -- If you need to manually set theme properties
+                for property, color in pairs(theme) do
+                    if self.Library.Theme[property] then
+                        self.Library.Theme[property] = color
+                    end
+                end
+            end
+        end
+    end
+    
     function InterfaceManager:BuildInterfaceSection(tab)
         assert(self.Library, "Must set InterfaceManager.Library")
-
 		local Library = self.Library
         local Settings = InterfaceManager.Settings
-
         InterfaceManager:LoadSettings()
-
+        
+        -- Create combined theme list (default + custom)
+        local allThemes = {}
+        for _, theme in ipairs(Library.Themes) do
+            table.insert(allThemes, theme)
+        end
+        for themeName in pairs(CustomThemes) do
+            if not table.find(allThemes, themeName) then
+                table.insert(allThemes, themeName)
+            end
+        end
+        
 		local section = tab:AddSection("Interface")
-
 		local InterfaceTheme = section:AddDropdown("InterfaceManager_InterfaceTheme", {
 			Title = "Theme",
 			Description = "Changes the interface theme.",
-			Values = Library.Themes,
+			Values = allThemes,
 			Default = Settings.Theme,
 			Callback = function(Value)
-				Library:SetTheme(Value)
+                if CustomThemes[Value] then
+                    -- Handle custom theme
+                    self:ApplyCustomTheme(Value)
+                else
+                    -- Handle default theme
+                    Library:SetTheme(Value)
+                end
                 Settings.Theme = Value
                 InterfaceManager:SaveSettings()
 			end
 		})
-
         InterfaceTheme:SetValue(Settings.Theme)
+        
+        -- Apply custom theme on startup if it's selected
+        if CustomThemes[Settings.Theme] then
+            self:ApplyCustomTheme(Settings.Theme)
+        end
 	
 		if Library.UseAcrylic then
 			section:AddToggle("InterfaceManager_AcrylicToggle", {
@@ -122,9 +177,7 @@ end
                 InterfaceManager:SaveSettings()
 			end
 		})
-
 		Library.MinimizeKeybind = MenuKeybind
     end
 end
-
 return InterfaceManager
