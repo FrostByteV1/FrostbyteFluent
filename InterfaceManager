@@ -15,16 +15,17 @@ local InterfaceManager = {} do
 		self:BuildFolderTree()
 	end
 
-    function InterfaceManager:SetLibrary(library)
-		self.Library = library
+  function InterfaceManager:SetLibrary(library)
+	self.Library = library
 
-		InterfaceManager.Settings = {
-			Theme = self.Library.Theme or "Dark",
-			Acrylic = self.Library.UseAcrylic or true,
-			Transparency = self.Library.Transparency or true,
-			MenuKeybind = self.Library.MinimizeKey or Enum.KeyCode.RightControl
-		}
-	end
+	local settings = InterfaceManager.Settings
+
+	settings.Theme = settings.Theme or library.Theme or "Dark"
+	settings.Acrylic = settings.Acrylic ~= nil and settings.Acrylic or library.UseAcrylic or true
+	settings.Transparency = settings.Transparency ~= nil and settings.Transparency or library.Transparency or true
+	settings.MenuKeybind = settings.MenuKeybind or library.MinimizeKey or Enum.KeyCode.RightControl
+end
+
 
     function InterfaceManager:BuildFolderTree()
 		local paths = {}
